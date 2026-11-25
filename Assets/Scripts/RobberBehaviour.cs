@@ -7,6 +7,7 @@ public class RobberBehaviour : MonoBehaviour {
 
     public GameObject diamond;
     public GameObject van;
+    public GameObject backdoor;
 
     BehaviourTree tree;
     NavMeshAgent agent;
@@ -18,6 +19,7 @@ public class RobberBehaviour : MonoBehaviour {
     };
 
     ActionState state = ActionState.IDLE;
+    Node.Status treeStatus = Node.Status.RUNNING;
 
     void Start() {
 
@@ -25,17 +27,18 @@ public class RobberBehaviour : MonoBehaviour {
 
         tree = new BehaviourTree();
 
-        Node steal = new Node("Steal Something");
+        Sequence steal = new Sequence("Steal Something");
         Leaf goToDiamond = new Leaf("Go To Diamond", GoToDiamond);
+        Leaf goToBackdoor = new Leaf("Go To Backdoor", GoToBackdoor);
         Leaf goToVan = new Leaf("Go To Van", GoToVan);
 
+        steal.AddChild(goToBackdoor);
         steal.AddChild(goToDiamond);
+        steal.AddChild(goToBackdoor);
         steal.AddChild(goToVan);
         tree.AddChild(steal);
 
         tree.PrintTree();
-
-        tree.Process();
     }
 
     public Node.Status GoToDiamond() {
@@ -46,6 +49,11 @@ public class RobberBehaviour : MonoBehaviour {
     public Node.Status GoToVan() {
 
         return GoToLocation(van.transform.position);
+    }
+
+    public Node.Status GoToBackdoor() {
+
+        return GoToLocation(backdoor.transform.position);
     }
 
     Node.Status GoToLocation(Vector3 destination) {
@@ -70,5 +78,7 @@ public class RobberBehaviour : MonoBehaviour {
 
     void Update() {
 
+        if (treeStatus == Node.Status.RUNNING)
+            treeStatus = tree.Process();
     }
 }
